@@ -275,6 +275,7 @@ The space char is not included.  Any \"$\" are also removed."
     ("d" . "delete-char 1")
     ("dc" . "delete-char 1")
     ("dcu" . "defcustom $ t\n  \"\"\n  :type 'boolean")
+    ("ddm" . "define-derived-mode ")
     ("df" . "defun $ ()\n  \"\"\n  ")
     ("dfa" . "defface $ \n  '((t))\n  \"\"\n  ")
     ("dfc" . "defcustom $ t\n  \"\"\n  :type 'boolean")
@@ -283,15 +284,16 @@ The space char is not included.  Any \"$\" are also removed."
     ("dk" . "define-key ")
     ("dkm" . ("define-key map " (format "(kbd %S) #'" (key-description (read-key-sequence-vector "Key: ")))))
     ("dl" . "dolist (it $)")
-    ("dt" . "dotimes (it $)")
-    ("dmp" . "derived-mode-p '")
     ("dm" . "defmacro $ ()\n  \"\"\n  ")
+    ("dmp" . "derived-mode-p '")
     ("dr" . "delete-region ")
+    ("dt" . "dotimes (it $)")
     ("dv" . "defvar $ t\n  \"\"")
     ("e" . "error \"$\"")
     ("ef" . "executable-find ")
     ("efn" . "expand-file-name ")
     ("eol" . "end-of-line")
+    ("ewc" . "eval-when-compile ")
     ("f" . "format \"$\"")
     ("fb" . "fboundp '")
     ("fbp" . "fboundp '")
@@ -309,6 +311,7 @@ The space char is not included.  Any \"$\" are also removed."
     ("gsk" . "global-set-key ")
     ("i" . "insert ")
     ("ie" . "ignore-errors ")
+    ("ifl" . "insert-file-literally \"$\"")
     ("ii" . "interactive")
     ("il" . "if-let (($))")
     ("ir" . "indent-region ")
@@ -346,10 +349,10 @@ The space char is not included.  Any \"$\" are also removed."
     ("ntr" . "narrow-to-region ")
     ("ow" . "other-window 1")
     ("p" . "point$")
-    ("pm" . "point-marker$")
     ("pa" . "point-max$")
     ("pg" . "plist-get ")
     ("pi" . "point-min$")
+    ("pm" . "point-marker$")
     ("pz" . "propertize ")
     ("r" . "require '")
     ("ra" . "use-region-p$")
@@ -378,6 +381,7 @@ The space char is not included.  Any \"$\" are also removed."
     ("sm" . "string-match \"$\"")
     ("smd" . "save-match-data")
     ("sn" . "symbol-name ")
+    ("so" . "setopt ")
     ("sp" . "stringp ")
     ("sq" . "string= ")
     ("sr" . "save-restriction")
@@ -398,10 +402,12 @@ The space char is not included.  Any \"$\" are also removed."
     ("urp" . "use-region-p$")
     ("w" . "when ")
     ("wcb" . "with-current-buffer ")
+    ("we" . "window-end")
+    ("weal" . "with-eval-after-load '")
+    ("wev" . "with-environment-variables (($))")
     ("wf" . "write-file ")
     ("wh" . "while ")
     ("wl" . "when-let (($))")
-    ("we" . "window-end")
     ("ws" . "window-start")
     ("wsw" . "with-selected-window ")
     ("wtb" . "with-temp-buffer")
@@ -412,14 +418,14 @@ The space char is not included.  Any \"$\" are also removed."
 (defun sotlisp-define-function-abbrev (name expansion)
   "Define a function abbrev expanding NAME to EXPANSION.
 This abbrev will only be expanded in places where a function name is
-sensible.  Roughly, this is right after a `(' or a `#''.
+sensible.  Roughly, this is right after a `(' or a `#'.
 
 If EXPANSION is any string, it doesn't have to be the just the
 name of a function.  In particular:
   - if it contains a `$', this char will not be inserted and
     point will be moved to its position after expansion.
   - if it contains a space, only a substring of it up to the
-first space is inserted when expanding after a `#'' (this is done
+first space is inserted when expanding after a `#' (this is done
 by defining two different abbrevs).
 
 For instance, if one defines
@@ -428,7 +434,7 @@ For instance, if one defines
 then triggering `expand-abbrev' after \"d\" expands in the
 following way:
    (d    => (delete-char 1
-   #'d   => #'delete-char"
+   #\\='d   => #\\='delete-char"
   (define-abbrev emacs-lisp-mode-abbrev-table
     name t #'sotlisp--expand-function
     ;; Don't override user abbrevs
@@ -447,7 +453,7 @@ following way:
   "Define all abbrevs in `sotlisp--default-function-abbrevs'."
   (interactive)
   (mapc (lambda (x) (sotlisp-define-function-abbrev (car x) (cdr x)))
-    sotlisp--default-function-abbrevs))
+        sotlisp--default-function-abbrevs))
 
 
 ;;; The global minor-mode
@@ -469,7 +475,7 @@ function in this hook should do.")
 
 ;;;###autoload
 (define-minor-mode speed-of-thought-mode
-  "Globalized Speed of Thought Mode"  
+  "Globalized Speed of Thought Mode"
   :global t
   (run-hooks (if speed-of-thought-mode
                  'speed-of-thought-turn-on-hook
@@ -488,6 +494,7 @@ If `speed-of-thought-mode' is already on, call ON."
 (define-minor-mode sotlisp-mode
   "Local mode for editing Lisp at the speed of thought."
   :lighter " SoT"
+  :keymap
   `(([M-return] . sotlisp-newline-and-parentheses)
     ([C-return] . sotlisp-downlist-newline-and-parentheses)
     (,(kbd "C-M-;") . ,(if (fboundp 'comment-or-uncomment-sexp)
